@@ -2,6 +2,9 @@
   Modified from:
   https://github.com/mynameistechno/finderjs/blob/master/example/example-async.js
 */
+var finder = require('finderjs');
+var _ = require('./util');
+
 var layerOsm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   subdomains: ["a", "b", "c"],
   maxZoom: 18
@@ -16,14 +19,16 @@ stopLayer.addTo(map);
 
 var host = 'http://dev.transit.land'
 var container = document.getElementById('finder');
+var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {});
 
 function remoteSource(parent, cfg, callback) {
-  //var loadingIndicator = createLoadingColumn();
-  //cfg.emitter.emit('create-column', loadingIndicator);
 
   stopLayer.clearLayers();
-  if (!parent || parent.type !== 'stop') rspLayer.clearLayers();
+  if (!parent || parent.type !== 'stop') {
+    cfg.emitter.emit('create-column', loadingIndicator);
+    rspLayer.clearLayers();
+  }
   if (parent) {
     if (parent.type === 'operator') {
       loadRoutes(parent, cfg, callback);
@@ -57,6 +62,7 @@ function loadOperators(parent, cfg, callback) {
         }
       });
       callback(finder_data);
+      _.remove(loadingIndicator);
     }
   });
 }
@@ -75,6 +81,7 @@ function loadRoutes(parent, cfg, callback) {
         }
       });
       callback(finder_data);
+      _.remove(loadingIndicator);
     }
   });
 }
@@ -87,6 +94,7 @@ function loadRouteStopPatterns(parent, cfg, callback) {
     }
   });
   callback(finder_data);
+  _.remove(loadingIndicator);
 }
 
 function loadStops(parent, cfg, callback) {
@@ -109,6 +117,7 @@ function loadStops(parent, cfg, callback) {
       });
       displayRSP(data);
       callback(finder_data);
+      _.remove(loadingIndicator);
     }
   });
 }
@@ -135,7 +144,6 @@ function getStop(stop_onestop_id, distance) {
                           'Distance traveled: '+  distance);
         }
       });
-      console.log(geojson);
       stopLayer.addLayer(geojson);
       map.fitBounds(geojson.getBounds());
     }
