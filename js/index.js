@@ -2,9 +2,13 @@
   Modified from:
   https://github.com/mynameistechno/finderjs/blob/master/example/example-async.js
 */
+var L = require('./leaflet');
+require('./leaflet.measure');
 var finder = require('finderjs');
 var _ = require('./util');
+var $ = require('./jquery-1.12.0.min.js');
 
+L.Icon.Default.imagePath = './images';
 var layerOsm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   subdomains: ["a", "b", "c"],
   maxZoom: 18
