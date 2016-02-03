@@ -158,7 +158,7 @@ function getStop(stop_onestop_id, distance) {
 function displayStop(route_stop_pattern_onestop_id, stop_onestop_id, stop_index) {
   var stop_query = stop_index === 1 ? '&destination_onestop_id=' : '&origin_onestop_id='
   stop_query += stop_onestop_id
-  query = '/api/v1/schedule_stop_pairs.json?route_stop_pattern=' + route_stop_pattern_onestop_id
+  query = '/api/v1/schedule_stop_pairs.json?route_stop_pattern_onestop_id=' + route_stop_pattern_onestop_id
   query += stop_query;
   var distance;
   $.ajax({
