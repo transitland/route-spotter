@@ -21,7 +21,7 @@ rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 
-var host = 'http://transit.land';
+var host = 'http://localhost:3000';
 var pagination = 'total=true';
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
