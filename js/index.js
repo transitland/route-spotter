@@ -21,7 +21,8 @@ rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 
-var host = 'http://dev.transit.land'
+var host = 'http://transit.land';
+var pagination = 'total=true';
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {});
@@ -55,7 +56,7 @@ function remoteSource(parent, cfg, callback) {
 
 function loadOperators(parent, cfg, callback) {
   $.ajax({
-    url: host + '/api/v1/operators.json',
+    url: host + '/api/v1/operators.json?' + pagination,
     dataType: 'json',
     async: true,
     success: function(data) {
@@ -73,7 +74,7 @@ function loadOperators(parent, cfg, callback) {
 
 function loadRoutes(parent, cfg, callback) {
   $.ajax({
-    url: host + '/api/v1/routes.json?operatedBy=' + parent.label,
+    url: host + '/api/v1/routes.json?operatedBy=' + parent.label + '&' + pagination,
     dataType: 'json',
     async: true,
     success: function(data) {
@@ -103,7 +104,7 @@ function loadRouteStopPatterns(parent, cfg, callback) {
 
 function loadStops(parent, cfg, callback) {
   $.ajax({
-    url: host + '/api/v1/route_stop_patterns.geojson?onestop_id=' + parent.label,
+    url: host + '/api/v1/route_stop_patterns.geojson?onestop_id=' + parent.label + '&' + pagination,
     dataType: 'json',
     async: true,
     success: function(data) {
@@ -138,7 +139,7 @@ function displayRSP(rsp_data) {
 
 function getStop(stop_onestop_id, distance) {
   $.ajax({
-    url: host + '/api/v1/stops.geojson?onestop_id=' + stop_onestop_id,
+    url: host + '/api/v1/stops.geojson?onestop_id=' + stop_onestop_id + '&' + pagination,
     dataType: 'json',
     async: true,
     success: function(stop_data) {
@@ -159,6 +160,7 @@ function displayStop(route_stop_pattern_onestop_id, stop_onestop_id, stop_index)
   stop_query += stop_onestop_id
   query = '/api/v1/schedule_stop_pairs.json?route_stop_pattern_onestop_id=' + route_stop_pattern_onestop_id
   query += stop_query;
+  query += '&' + pagination;
   var distance;
   $.ajax({
     url: host + query,
