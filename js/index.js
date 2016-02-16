@@ -22,7 +22,7 @@ var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 
 var host = 'http://localhost:3000';
-var pagination = 'total=true';
+var pagination = 'per_page=1000&total=true';
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {});
