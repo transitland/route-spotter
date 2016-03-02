@@ -4,6 +4,7 @@
 */
 var L = require('./leaflet');
 require('./leaflet.measure');
+require('leaflet-polylinedecorator')
 var finder = require('finderjs');
 var _ = require('./util');
 var $ = require('./jquery-1.12.0.min.js');
@@ -21,8 +22,8 @@ rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 
-var host = 'http://transit.land';
-var pagination = 'per_page=1000&total=true';
+var host = 'https://transit.land';
+var pagination = {per_page: 1000, total: true};
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {});
@@ -45,7 +46,7 @@ function remoteSource(parent, cfg, callback) {
       loadStops(parent, cfg, callback);
     }
     else if (parent.type === 'stop') {
-      displayStop(parent.rsp, parent.label, parent.index);
+      displayStop(parent.rsp, parent.label, parent.previous, parent.next);
     } else {}
   }
   else {
@@ -56,7 +57,7 @@ function remoteSource(parent, cfg, callback) {
 
 function loadOperators(parent, cfg, callback) {
   $.ajax({
-    url: host + '/api/v1/operators.json?' + pagination,
+    url: host + '/api/v1/operators.json?' + $.param(pagination),
     dataType: 'json',
     async: true,
     success: function(data) {
@@ -73,8 +74,10 @@ function loadOperators(parent, cfg, callback) {
 }
 
 function loadRoutes(parent, cfg, callback) {
+  var params = {operatedBy: parent.label};
+  $.extend(params,pagination);
   $.ajax({
-    url: host + '/api/v1/routes.json?operatedBy=' + parent.label + '&' + pagination,
+    url: host + '/api/v1/routes.json?' + $.param(params),
     dataType: 'json',
     async: true,
     success: function(data) {
@@ -103,21 +106,23 @@ function loadRouteStopPatterns(parent, cfg, callback) {
 }
 
 function loadStops(parent, cfg, callback) {
+  var params = {onestop_id: parent.label};
+  $.extend(params,pagination);
   $.ajax({
-    url: host + '/api/v1/route_stop_patterns.geojson?onestop_id=' + parent.label + '&' + pagination,
+    url: host + '/api/v1/route_stop_patterns.geojson?' + $.param(params),
     dataType: 'json',
     async: true,
     success: function(data) {
       stop_pattern = data.features[0].properties.stop_pattern;
       var finder_data = $.map(stop_pattern, function(stop_onestop_id, i) {
-        var index = 0;
-        if (i == 0) index = -1;
-        else if (i == stop_pattern.length - 1) index = 1;
+        var previous = (i != 0) ? stop_pattern[i-1] : null;
+        var next = (i != stop_pattern.length - 1) ? stop_pattern[i+1] : null;
         return {
           label: stop_onestop_id,
           type: 'stop',
           rsp: parent.label,
-          index: index
+          previous: previous,
+          next: next
         }
       });
       displayRSP(data);
@@ -131,15 +136,22 @@ function displayRSP(rsp_data) {
   var geojson = L.geoJson(rsp_data, {
     onEachFeature: function (feature, layer) {
       layer.bindPopup(feature.id);
+      var p = L.polylineDecorator(layer, {patterns: [
+          {repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, weight: 0}}) }
+        ]}
+      );
+      rspLayer.addLayer(layer);
+      rspLayer.addLayer(p);
     }
   });
   map.fitBounds(geojson.getBounds());
-  rspLayer.addLayer(geojson);
 }
 
 function getStop(stop_onestop_id, distance) {
+  var params = {onestop_id: stop_onestop_id};
+  $.extend(params,pagination);
   $.ajax({
-    url: host + '/api/v1/stops.geojson?onestop_id=' + stop_onestop_id + '&' + pagination,
+    url: host + '/api/v1/stops.geojson?' + $.param(params),
     dataType: 'json',
     async: true,
     success: function(stop_data) {
@@ -155,20 +167,30 @@ function getStop(stop_onestop_id, distance) {
   });
 }
 
-function displayStop(route_stop_pattern_onestop_id, stop_onestop_id, stop_index) {
-  var stop_query = stop_index === 1 ? '&destination_onestop_id=' : '&origin_onestop_id='
-  stop_query += stop_onestop_id
-  query = '/api/v1/schedule_stop_pairs.json?route_stop_pattern_onestop_id=' + route_stop_pattern_onestop_id
-  query += stop_query;
-  query += '&' + pagination;
+function displayStop(route_stop_pattern_onestop_id, stop_onestop_id, previous, next) {
+  var params = {route_stop_pattern_onestop_id: route_stop_pattern_onestop_id};
+  if (previous) {
+    params['origin_onestop_id'] = previous;
+    params['destination_onestop_id'] = stop_onestop_id;
+  }
+  else {
+    params['destination_onestop_id'] = next;
+    params['origin_onestop_id'] = stop_onestop_id;
+  }
+  $.extend(params,pagination);
+  query = '/api/v1/schedule_stop_pairs.json?' + $.param(params);
   var distance;
   $.ajax({
     url: host + query,
     dataType: 'json',
     async: true,
     success: function(data) {
-      if (stop_index === 1) distance = data.schedule_stop_pairs[0].destination_dist_traveled;
-      else distance = data.schedule_stop_pairs[0].origin_dist_traveled;
+      if (previous) {
+        distance = data.schedule_stop_pairs[0].destination_dist_traveled;
+      }
+      else {
+        distance = data.schedule_stop_pairs[0].origin_dist_traveled;
+      }
       getStop(stop_onestop_id, distance);
     }
   })
