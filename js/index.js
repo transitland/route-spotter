@@ -22,7 +22,7 @@ rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 
-var host = 'http://localhost:3000';
+var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
