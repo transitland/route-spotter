@@ -136,7 +136,7 @@ function displayRSP(rsp_data) {
   var geojson = L.geoJson(rsp_data, {
     onEachFeature: function (feature, layer) {
       layer.bindPopup(feature.id);
-      layer.setStyle({color: '#' + feature.properties['color']});
+      if (feature.properties['color']) layer.setStyle({color: '#' + feature.properties['color']});
       var p = L.polylineDecorator(layer, {patterns: [
           {repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, weight: 0}}) }
         ]}
