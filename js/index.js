@@ -22,7 +22,7 @@ rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 
-var host = 'http://localhost:3000' //'https://transit.land';
+var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
@@ -49,7 +49,7 @@ function remoteSource(parent, cfg, callback) {
       rspClicked(parent, cfg, callback);
     }
     else if (parent.type === 'stop') {
-      stopClicked(parent.distance, parent.label, parent.previous, parent.next);
+      stopClicked(parent.distance, parent.route_stop_pattern, parent.label, parent.previous, parent.next);
     } else {}
   }
   else {
@@ -134,10 +134,11 @@ function routeClicked(parent, cfg, callback) {
 }
 
 function rspClicked(parent, cfg, callback) {
-  var params = {onestop_id: parent.label};
+  var rsp_onestop_id = parent.label;
+  var params = {onestop_id: rsp_onestop_id};
   $.extend(params,pagination);
   $.ajax({
-    url: host + '/api/v1/route_stop_patterns.json?' + $.param(params),
+    url: host + '/api/v1/route_stop_patterns.geojson?' + $.param(params),
     dataType: 'json',
     async: true,
     success: function(data) {
@@ -146,10 +147,12 @@ function rspClicked(parent, cfg, callback) {
       var finder_data = $.map(stop_pattern, function(stop_onestop_id, i) {
         var previous = (i != 0) ? stop_pattern[i-1] : null;
         var next = (i != stop_pattern.length - 1) ? stop_pattern[i+1] : null;
+        var stop_distance = (!stop_distances || stop_distances.length == 0) ? null : stop_distances[i];
         return {
           label: stop_onestop_id,
           type: 'stop',
-          distance: stop_distances[i],
+          distance: stop_distance,
+          route_stop_pattern: rsp_onestop_id,
           previous: previous,
           next: next
         }
@@ -177,9 +180,14 @@ function displayRSP(rsp_data) {
   map.fitBounds(geojson.getBounds());
 }
 
-function stopClicked(stop_distance, stop_onestop_id, previous, next) {
+function stopClicked(stop_distance, rsp_onestop_id, stop_onestop_id, previous, next) {
+  if (!stop_distance) getDistanceFromSSP(rsp_onestop_id, previous, stop_onestop_id, next);
+  else getStop(stop_onestop_id, stop_distance);
+}
+
+function getStop(stop_onestop_id, stop_distance) {
   var params = {onestop_id: stop_onestop_id};
-  $.extend(params,pagination);
+  $.extend(params, pagination);
   $.ajax({
     url: host + '/api/v1/stops.geojson?' + $.param(params),
     dataType: 'json',
@@ -193,6 +201,35 @@ function stopClicked(stop_distance, stop_onestop_id, previous, next) {
       });
       stopLayer.addLayer(geojson);
       map.fitBounds(geojson.getBounds());
+    }
+  });
+}
+
+function getDistanceFromSSP(rsp_onestop_id, previous_stop, this_stop, next_stop) {
+  var params = {route_stop_pattern_onestop_id: rsp_onestop_id};
+  if (previous_stop) {
+    params['origin_onestop_id'] = previous_stop;
+    params['destination_onestop_id'] = this_stop;
+  }
+  else {
+    params['destination_onestop_id'] = next_stop;
+    params['origin_onestop_id'] = this_stop;
+  }
+  $.extend(params,pagination);
+  query = '/api/v1/schedule_stop_pairs.json?' + $.param(params);
+  $.ajax({
+    url: host + query,
+    dataType: 'json',
+    async: true,
+    success: function(data) {
+      var stop_distance;
+      if (previous_stop) {
+        stop_distance = data.schedule_stop_pairs[0].destination_dist_traveled;
+      }
+      else {
+        stop_distance = data.schedule_stop_pairs[0].origin_dist_traveled;
+      }
+      getStop(this_stop, stop_distance);
     }
   });
 }
