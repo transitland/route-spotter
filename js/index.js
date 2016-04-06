@@ -15,11 +15,10 @@ var ua = window.navigator.userAgent;
 var msie = ua.indexOf("MSIE ");
 
 if (msie > 0) {
-  var attr = '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>';
-  tileLayer = L.TileLayer.Common.extend({
-		url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-		options: {attribution: attr}
-	});
+  tileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18
+  });
 }
 else {
   tileLayer = Tangram.leafletLayer({
