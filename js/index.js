@@ -36,9 +36,24 @@ var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
-var emitter = finder(container, remoteSource, {});
+var emitter = finder(container, remoteSource, {header: 'Region'});
 
 function remoteSource(parent, cfg, callback) {
+
+  if (parent) {
+    if (parent.type === 'region') {
+      cfg.header = 'Operator';
+    }
+    else if (parent.type === 'operator') {
+      cfg.header = 'Route';
+    }
+    else if (parent.type === 'route') {
+      cfg.header = 'RouteStopPattern';
+    }
+    else if (parent.type === 'rsp') {
+      cfg.header = 'Stop';
+    }
+  }
 
   stopLayer.clearLayers();
   if (!parent || parent.type !== 'stop') {
