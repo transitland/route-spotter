@@ -1,7 +1,3 @@
-/*
-  Modified from:
-  https://github.com/mynameistechno/finderjs/blob/master/example/example-async.js
-*/
 var L = require('./leaflet');
 require('./leaflet.measure');
 require('leaflet-polylinedecorator')
