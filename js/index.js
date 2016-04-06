@@ -10,13 +10,28 @@ var _ = require('./util');
 var $ = require('./jquery-1.12.0.min.js');
 
 L.Icon.Default.imagePath = './images';
-var refill = Tangram.leafletLayer({
-  scene: 'https://raw.githubusercontent.com/tangrams/refill-style/gh-pages/refill-style.yaml',
-  attribution: '<a href="https://mapzen.com/tangram" target="_blank">Tangram</a> | <a href="http://www.openstreetmap.org/about" target="_blank">&copy; OSM contributors | <a href="https://mapzen.com/" target="_blank">Mapzen</a>',
-});
+var tileLayer;
+var ua = window.navigator.userAgent;
+var msie = ua.indexOf("MSIE ");
+
+if (msie > 0) {
+  var attr = '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>';
+  tileLayer = L.TileLayer.Common.extend({
+		url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+		options: {attribution: attr}
+	});
+}
+else {
+  tileLayer = Tangram.leafletLayer({
+    scene: 'https://raw.githubusercontent.com/tangrams/refill-style/gh-pages/refill-style.yaml',
+    attribution: '<a href="https://mapzen.com/tangram" target="_blank">Tangram</a> | <a href="http://www.openstreetmap.org/about" target="_blank">&copy; OSM contributors | <a href="https://mapzen.com/" target="_blank">Mapzen</a>',
+    errorTileUrl: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  });
+}
+
 var map = new L.Map('map', {
   measureControl: true
-}).addLayer(refill).setView(new L.LatLng(37.7, -122.4), 6);
+}).addLayer(tileLayer).setView(new L.LatLng(37.7, -122.4), 6);
 var rspLayer = L.layerGroup();
 rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
