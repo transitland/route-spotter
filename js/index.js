@@ -36,7 +36,10 @@ function remoteSource(parent, cfg, callback) {
     rspLayer.clearLayers();
   }
   if (parent) {
-    if (parent.type === 'operator') {
+    if (parent.type === 'region') {
+      loadOperators(parent, cfg, callback);
+    }
+    else if (parent.type === 'operator') {
       loadRoutes(parent, cfg, callback);
     }
     else if (parent.type === 'route') {
@@ -50,31 +53,56 @@ function remoteSource(parent, cfg, callback) {
     } else {}
   }
   else {
-    loadOperators(parent, cfg, callback);
+    loadRegions(parent, cfg, callback);
   }
 
 }
 
-function loadOperators(parent, cfg, callback) {
+function loadRegions(parent, cfg, callback) {
+  // for now region is metro
   $.ajax({
     url: host + '/api/v1/operators.json?' + $.param(pagination),
     dataType: 'json',
     async: true,
     success: function(data) {
-      var finder_data = $.map(data.operators, function(operator) {
-        return {
-          label: operator.onestop_id,
-          type: 'operator'
+      var finder_data = {};
+      $.each(data.operators, function(i, operator) {
+        if (operator.metro === null) operator.metro = 'Unknown';
+        if (finder_data.hasOwnProperty(operator.metro)) {
+          finder_data[operator.metro].operators.push(operator.onestop_id);
+        }
+        else {
+          finder_data[operator.metro] = {
+            id: operator.metro,
+            label: operator.metro,
+            type: 'region',
+            operators: [operator.onestop_id]
+          };
         }
       });
+      finder_data = $.map(finder_data, function(metro_data, index) {
+        return [metro_data];
+      }).sort(function (a, b) { return a.label.localeCompare(b.label); });
       callback(finder_data);
       _.remove(loadingIndicator);
     }
   });
 }
 
+function loadOperators(parent, cfg, callback) {
+  var finder_data = $.map(parent.operators, function(operator_onestop_id) {
+    return {
+      id: operator_onestop_id,
+      label: operator_onestop_id,
+      type: 'operator'
+    }
+  });
+  callback(finder_data);
+  _.remove(loadingIndicator);
+}
+
 function loadRoutes(parent, cfg, callback) {
-  var params = {operatedBy: parent.label};
+  var params = {operatedBy: parent.id};
   $.extend(params,pagination);
   $.ajax({
     url: host + '/api/v1/routes.json?' + $.param(params),
