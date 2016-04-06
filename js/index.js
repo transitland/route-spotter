@@ -10,13 +10,27 @@ var _ = require('./util');
 var $ = require('./jquery-1.12.0.min.js');
 
 L.Icon.Default.imagePath = './images';
-var refill = Tangram.leafletLayer({
-  scene: 'https://raw.githubusercontent.com/tangrams/refill-style/gh-pages/refill-style.yaml',
-  attribution: '<a href="https://mapzen.com/tangram" target="_blank">Tangram</a> | <a href="http://www.openstreetmap.org/about" target="_blank">&copy; OSM contributors | <a href="https://mapzen.com/" target="_blank">Mapzen</a>',
-});
+var tileLayer;
+var ua = window.navigator.userAgent;
+var msie = ua.indexOf("MSIE ");
+
+if (msie > 0) {
+  tileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18
+  });
+}
+else {
+  tileLayer = Tangram.leafletLayer({
+    scene: 'https://raw.githubusercontent.com/tangrams/refill-style/gh-pages/refill-style.yaml',
+    attribution: '<a href="https://mapzen.com/tangram" target="_blank">Tangram</a> | <a href="http://www.openstreetmap.org/about" target="_blank">&copy; OSM contributors | <a href="https://mapzen.com/" target="_blank">Mapzen</a>',
+    errorTileUrl: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  });
+}
+
 var map = new L.Map('map', {
   measureControl: true
-}).addLayer(refill).setView(new L.LatLng(37.7, -122.4), 6);
+}).addLayer(tileLayer).setView(new L.LatLng(37.7, -122.4), 6);
 var rspLayer = L.layerGroup();
 rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
@@ -37,19 +51,19 @@ function remoteSource(parent, cfg, callback) {
   }
   if (parent) {
     if (parent.type === 'region') {
-      loadOperators(parent, cfg, callback);
+      regionClicked(parent, cfg, callback);
     }
     else if (parent.type === 'operator') {
-      loadRoutes(parent, cfg, callback);
+      operatorClicked(parent, cfg, callback);
     }
     else if (parent.type === 'route') {
-      loadRouteStopPatterns(parent, cfg, callback);
+      routeClicked(parent, cfg, callback);
     }
     else if (parent.type === 'rsp') {
-      loadStops(parent, cfg, callback);
+      rspClicked(parent, cfg, callback);
     }
     else if (parent.type === 'stop') {
-      displayStop(parent.rsp, parent.id, parent.previous, parent.next);
+      stopClicked(parent.distance, parent.route_stop_pattern, parent.label, parent.previous, parent.next);
     } else {}
   }
   else {
@@ -89,7 +103,7 @@ function loadRegions(parent, cfg, callback) {
   });
 }
 
-function loadOperators(parent, cfg, callback) {
+function regionClicked(parent, cfg, callback) {
   var finder_data = $.map(parent.operators, function(operator) {
     return {
       id: operator.onestop_id,
@@ -101,7 +115,7 @@ function loadOperators(parent, cfg, callback) {
   _.remove(loadingIndicator);
 }
 
-function loadRoutes(parent, cfg, callback) {
+function operatorClicked(parent, cfg, callback) {
   var params = {operatedBy: parent.id};
   $.extend(params,pagination);
   $.ajax({
@@ -123,7 +137,7 @@ function loadRoutes(parent, cfg, callback) {
   });
 }
 
-function loadRouteStopPatterns(parent, cfg, callback) {
+function routeClicked(parent, cfg, callback) {
   var finder_data = $.map(parent.route_stop_patterns, function(rsp_id) {
     return {
       id: rsp_id,
@@ -135,23 +149,27 @@ function loadRouteStopPatterns(parent, cfg, callback) {
   _.remove(loadingIndicator);
 }
 
-function loadStops(parent, cfg, callback) {
-  var params = {onestop_id: parent.id};
+function rspClicked(parent, cfg, callback) {
+  var rsp_onestop_id = parent.label;
+  var params = {onestop_id: rsp_onestop_id};
   $.extend(params,pagination);
   $.ajax({
     url: host + '/api/v1/route_stop_patterns.geojson?' + $.param(params),
     dataType: 'json',
     async: true,
     success: function(data) {
-      stop_pattern = data.features[0].properties.stop_pattern;
+      var stop_pattern = data.features[0].properties.stop_pattern;
+      var stop_distances = data.features[0].properties.stop_distances;
       var finder_data = $.map(stop_pattern, function(stop_onestop_id, i) {
         var previous = (i != 0) ? stop_pattern[i-1] : null;
         var next = (i != stop_pattern.length - 1) ? stop_pattern[i+1] : null;
+        var stop_distance = (!stop_distances || stop_distances.length == 0) ? null : stop_distances[i];
         return {
           id: stop_onestop_id,
           label: stop_onestop_id,
           type: 'stop',
-          rsp: parent.id,
+          distance: stop_distance,
+          route_stop_pattern: rsp_onestop_id,
           previous: previous,
           next: next
         }
@@ -179,9 +197,14 @@ function displayRSP(rsp_data) {
   map.fitBounds(geojson.getBounds());
 }
 
-function getStop(stop_onestop_id, distance) {
+function stopClicked(stop_distance, rsp_onestop_id, stop_onestop_id, previous, next) {
+  if (!stop_distance) getDistanceFromSSP(rsp_onestop_id, previous, stop_onestop_id, next);
+  else getStop(stop_onestop_id, stop_distance);
+}
+
+function getStop(stop_onestop_id, stop_distance) {
   var params = {onestop_id: stop_onestop_id};
-  $.extend(params,pagination);
+  $.extend(params, pagination);
   $.ajax({
     url: host + '/api/v1/stops.geojson?' + $.param(params),
     dataType: 'json',
@@ -190,7 +213,7 @@ function getStop(stop_onestop_id, distance) {
       var geojson = L.geoJson(stop_data, {
         onEachFeature: function (feature, layer) {
           layer.bindPopup(feature.id + '<br/>' +
-                          'Distance traveled: '+  distance);
+                          'Distance traveled: '+  stop_distance);
         }
       });
       stopLayer.addLayer(geojson);
@@ -199,33 +222,33 @@ function getStop(stop_onestop_id, distance) {
   });
 }
 
-function displayStop(route_stop_pattern_onestop_id, stop_onestop_id, previous, next) {
-  var params = {route_stop_pattern_onestop_id: route_stop_pattern_onestop_id};
-  if (previous) {
-    params['origin_onestop_id'] = previous;
-    params['destination_onestop_id'] = stop_onestop_id;
+function getDistanceFromSSP(rsp_onestop_id, previous_stop, this_stop, next_stop) {
+  var params = {route_stop_pattern_onestop_id: rsp_onestop_id};
+  if (previous_stop) {
+    params['origin_onestop_id'] = previous_stop;
+    params['destination_onestop_id'] = this_stop;
   }
   else {
-    params['destination_onestop_id'] = next;
-    params['origin_onestop_id'] = stop_onestop_id;
+    params['destination_onestop_id'] = next_stop;
+    params['origin_onestop_id'] = this_stop;
   }
   $.extend(params,pagination);
   query = '/api/v1/schedule_stop_pairs.json?' + $.param(params);
-  var distance;
   $.ajax({
     url: host + query,
     dataType: 'json',
     async: true,
     success: function(data) {
-      if (previous) {
-        distance = data.schedule_stop_pairs[0].destination_dist_traveled;
+      var stop_distance;
+      if (previous_stop) {
+        stop_distance = data.schedule_stop_pairs[0].destination_dist_traveled;
       }
       else {
-        distance = data.schedule_stop_pairs[0].origin_dist_traveled;
+        stop_distance = data.schedule_stop_pairs[0].origin_dist_traveled;
       }
-      getStop(stop_onestop_id, distance);
+      getStop(this_stop, stop_distance);
     }
-  })
+  });
 }
 
 function createLoadingColumn() {
