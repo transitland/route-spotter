@@ -39,7 +39,12 @@ var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {header: 'Region'});
 
 function remoteSource(parent, cfg, callback) {
-
+  cfg.header = null;
+  stopLayer.clearLayers();
+  if (!parent || parent.type !== 'stop') {
+    cfg.emitter.emit('create-column', loadingIndicator);
+    rspLayer.clearLayers();
+  }
   if (parent) {
     if (parent.type === 'region') {
       cfg.header = 'Operator';
@@ -54,12 +59,10 @@ function remoteSource(parent, cfg, callback) {
       cfg.header = 'Stop';
     }
   }
-
-  stopLayer.clearLayers();
-  if (!parent || parent.type !== 'stop') {
-    cfg.emitter.emit('create-column', loadingIndicator);
-    rspLayer.clearLayers();
+  else {
+    cfg.header = 'Region';
   }
+
   if (parent) {
     if (parent.type === 'region') {
       regionClicked(parent, cfg, callback);
