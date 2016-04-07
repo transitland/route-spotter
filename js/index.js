@@ -89,8 +89,10 @@ function remoteSource(parent, cfg, callback) {
 
 function loadRegions(parent, cfg, callback) {
   // for now region is metro
+  var params = {import_level: 2};
+  $.extend(params,pagination);
   $.ajax({
-    url: host + '/api/v1/operators.json?' + $.param(pagination),
+    url: host + '/api/v1/operators.json?' + $.param(params),
     dataType: 'json',
     async: true,
     success: function(data) {
