@@ -1,7 +1,3 @@
-/*
-  Modified from:
-  https://github.com/mynameistechno/finderjs/blob/master/example/example-async.js
-*/
 var L = require('./leaflet');
 require('./leaflet.measure');
 require('leaflet-polylinedecorator')
@@ -40,15 +36,33 @@ var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
-var emitter = finder(container, remoteSource, {});
+var emitter = finder(container, remoteSource, {header: 'Region'});
 
 function remoteSource(parent, cfg, callback) {
-
+  cfg.header = null;
   stopLayer.clearLayers();
   if (!parent || parent.type !== 'stop') {
     cfg.emitter.emit('create-column', loadingIndicator);
     rspLayer.clearLayers();
   }
+  if (parent) {
+    if (parent.type === 'region') {
+      cfg.header = 'Operator';
+    }
+    else if (parent.type === 'operator') {
+      cfg.header = 'Route';
+    }
+    else if (parent.type === 'route') {
+      cfg.header = 'RouteStopPattern';
+    }
+    else if (parent.type === 'rsp') {
+      cfg.header = 'Stop';
+    }
+  }
+  else {
+    cfg.header = 'Region';
+  }
+
   if (parent) {
     if (parent.type === 'region') {
       regionClicked(parent, cfg, callback);
@@ -83,14 +97,14 @@ function loadRegions(parent, cfg, callback) {
       $.each(data.operators, function(i, operator) {
         if (operator.metro === null) operator.metro = 'Unknown';
         if (finder_data.hasOwnProperty(operator.metro)) {
-          finder_data[operator.metro].operators.push(operator.onestop_id);
+          finder_data[operator.metro].operators.push(operator);
         }
         else {
           finder_data[operator.metro] = {
             id: operator.metro,
             label: operator.metro,
             type: 'region',
-            operators: [operator.onestop_id]
+            operators: [operator]
           };
         }
       });
@@ -104,10 +118,10 @@ function loadRegions(parent, cfg, callback) {
 }
 
 function regionClicked(parent, cfg, callback) {
-  var finder_data = $.map(parent.operators, function(operator_onestop_id) {
+  var finder_data = $.map(parent.operators, function(operator) {
     return {
-      id: operator_onestop_id,
-      label: operator_onestop_id,
+      id: operator.onestop_id,
+      label: operator.name + ' (' + operator.onestop_id + ')',
       type: 'operator'
     }
   });
@@ -125,7 +139,8 @@ function operatorClicked(parent, cfg, callback) {
     success: function(data) {
       var finder_data = $.map(data.routes, function(route) {
         return {
-          label: route.onestop_id,
+          id: route.onestop_id,
+          label: route.name + ' (' + route.onestop_id + ')',
           type: 'route',
           route_stop_patterns: route.route_stop_patterns_by_onestop_id,
         }
@@ -139,6 +154,7 @@ function operatorClicked(parent, cfg, callback) {
 function routeClicked(parent, cfg, callback) {
   var finder_data = $.map(parent.route_stop_patterns, function(rsp_id) {
     return {
+      id: rsp_id,
       label: rsp_id,
       type: 'rsp'
     }
@@ -163,6 +179,7 @@ function rspClicked(parent, cfg, callback) {
         var next = (i != stop_pattern.length - 1) ? stop_pattern[i+1] : null;
         var stop_distance = (!stop_distances || stop_distances.length == 0) ? null : stop_distances[i];
         return {
+          id: stop_onestop_id,
           label: stop_onestop_id,
           type: 'stop',
           distance: stop_distance,
