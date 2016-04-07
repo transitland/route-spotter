@@ -25,6 +25,7 @@ else {
 }
 
 var map = new L.Map('map', {
+  touchZoom: false,
   measureControl: true
 }).addLayer(tileLayer).setView(new L.LatLng(37.7, -122.4), 6);
 var rspLayer = L.layerGroup();
