@@ -15,8 +15,8 @@
 
 .fjs-col {
   overflow-y: auto;
-  min-height: inherit;
-  max-height: inherit;
+  min-height: 275px;
+  max-height: 275px;
 }
 
 .fjs-item a {
@@ -61,8 +61,8 @@
 }
 
 .fjs-group {
-  min-height: 350px;
-  max-height: 350px;
+  min-height: 300px;
+  max-height: 300px;
   min-width: 200px;
   border-right: solid 1px lightgray;
 }
