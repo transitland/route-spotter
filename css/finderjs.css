@@ -5,7 +5,8 @@
   font-size: .9em;
   min-height: 300px;
   max-height: 300px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .fjs-container:focus {
@@ -13,11 +14,9 @@
 }
 
 .fjs-col {
-  border-right: solid 1px lightgray;
-  max-height: 600px;
-  min-height: inherit;
-  min-width: 200px;
   overflow-y: auto;
+  min-height: inherit;
+  max-height: inherit;
 }
 
 .fjs-item a {
@@ -53,10 +52,27 @@
   color: white;
 }
 
+.fjs-header {
+  border-bottom: solid 1px lightgray;
+  min-width: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.fjs-group {
+  min-height: 350px;
+  max-height: 350px;
+  min-width: 200px;
+  border-right: solid 1px lightgray;
+}
+
 .fjs-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  position: relative;
+  overflow-y: auto;
 }
 
 .fjs-item-content {
