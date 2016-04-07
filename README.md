@@ -1,4 +1,6 @@
-Instructions for building bundle.js locally:
+Open index.html in a supported browser.
+
+In order to make edits and build bundle.js locally:
 
 install npm: https://nodejs.org/en/
 npm install -g browserify
