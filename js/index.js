@@ -92,7 +92,7 @@ function loadRegions(parent, cfg, callback) {
    var finder_data = {};
    var operator_ids = [];
    function getOperators(importLevel, getCallback) {
-     var params = {importLevel: importLevel};
+     var params = {import_level: importLevel};
      $.extend(params,pagination);
      $.ajax({
        url: host + '/api/v1/operators.json?' + $.param(params),
@@ -150,7 +150,7 @@ function regionClicked(parent, cfg, callback) {
 }
 
 function operatorClicked(parent, cfg, callback) {
-  var params = {operatedBy: parent.id};
+  var params = {operated_by: parent.id};
   $.extend(params,pagination);
   $.ajax({
     url: host + '/api/v1/routes.json?' + $.param(params),
