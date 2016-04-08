@@ -33,6 +33,7 @@ var rspLayer = L.layerGroup();
 rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
+var movingMarker;
 
 var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
@@ -46,6 +47,7 @@ function remoteSource(parent, cfg, callback) {
   if (!parent || parent.type !== 'stop') {
     cfg.emitter.emit('create-column', loadingIndicator);
     rspLayer.clearLayers();
+    if (movingMarker) map.removeLayer(movingMarker);
   }
   if (parent) {
     if (parent.type === 'region') {
@@ -200,8 +202,6 @@ function rspClicked(parent, cfg, callback) {
 }
 
 function displayRSP(rsp_data) {
-  if (movingMarker) map.removeLayer(movingMarker);
-  var movingMarker;
   var geojson = L.geoJson(rsp_data, {
     onEachFeature: function (feature, layer) {
       layer.bindPopup(feature.id);
