@@ -1,6 +1,7 @@
 var L = require('./leaflet');
 require('./leaflet.measure');
-require('leaflet-polylinedecorator')
+require('leaflet-polylinedecorator');
+require('./MovingMarker');
 var finder = require('finderjs');
 var _ = require('./util');
 var $ = require('./jquery-1.12.0.min.js');
@@ -199,6 +200,8 @@ function rspClicked(parent, cfg, callback) {
 }
 
 function displayRSP(rsp_data) {
+  if (movingMarker) map.removeLayer(movingMarker);
+  var movingMarker;
   var geojson = L.geoJson(rsp_data, {
     onEachFeature: function (feature, layer) {
       layer.bindPopup(feature.id);
@@ -207,11 +210,16 @@ function displayRSP(rsp_data) {
           {repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, weight: 0}}) }
         ]}
       );
+      var coords = layer.getLatLngs();
+      var numbers = new Array(coords.length);
+      numbers.fill(100);
+      movingMarker = L.Marker.movingMarker(coords,numbers,{loop: true}).addTo(map);
       rspLayer.addLayer(layer);
       rspLayer.addLayer(p);
     }
   });
   map.fitBounds(geojson.getBounds());
+  movingMarker.start();
 }
 
 function stopClicked(stop_distance, rsp_onestop_id, stop_onestop_id, previous, next) {
