@@ -124,16 +124,13 @@ function loadRegions(parent, cfg, callback) {
      });
    }
 
-   getOperators(4, function(level2Data) {
-     addOperators(level2Data);
-     getOperators(2, function(level4Data){
-       addOperators(level4Data);
-       finder_data = $.map(finder_data, function(metro_data, index) {
-         return [metro_data];
-       }).sort(function (a, b) { return a.label.localeCompare(b.label); });
-       callback(finder_data);
-       _.remove(loadingIndicator);
-     });
+   getOperators('2,3,4', function(operatorData){
+     addOperators(operatorData);
+     finder_data = $.map(finder_data, function(metro_data, index) {
+       return [metro_data];
+     }).sort(function (a, b) { return a.label.localeCompare(b.label); });
+     callback(finder_data);
+     _.remove(loadingIndicator);
    });
 }
 
