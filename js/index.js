@@ -88,36 +88,53 @@ function remoteSource(parent, cfg, callback) {
 }
 
 function loadRegions(parent, cfg, callback) {
-  // for now region is metro
-  var params = {import_level: 2};
-  $.extend(params,pagination);
-  $.ajax({
-    url: host + '/api/v1/operators.json?' + $.param(params),
-    dataType: 'json',
-    async: true,
-    success: function(data) {
-      var finder_data = {};
-      $.each(data.operators, function(i, operator) {
-        if (operator.metro === null) operator.metro = 'Unknown';
-        if (finder_data.hasOwnProperty(operator.metro)) {
-          finder_data[operator.metro].operators.push(operator);
-        }
-        else {
-          finder_data[operator.metro] = {
-            id: operator.metro,
-            label: operator.metro,
-            type: 'region',
-            operators: [operator]
-          };
-        }
-      });
-      finder_data = $.map(finder_data, function(metro_data, index) {
-        return [metro_data];
-      }).sort(function (a, b) { return a.label.localeCompare(b.label); });
-      callback(finder_data);
-      _.remove(loadingIndicator);
-    }
-  });
+   // for now region is operator.metro
+   var finder_data = {};
+   var operator_ids = [];
+   function getOperators(importLevel, getCallback) {
+     var params = {importLevel: importLevel};
+     $.extend(params,pagination);
+     $.ajax({
+       url: host + '/api/v1/operators.json?' + $.param(params),
+       dataType: 'json',
+       async: true,
+       success: function(data) {
+         getCallback(data);
+       }
+     });
+   }
+
+   function addOperators(data) {
+     $.each(data.operators, function(i, operator) {
+       if (!(operator_ids.indexOf(operator.onestop_id) != -1)) {
+         if (operator.metro === null) operator.metro = 'Unknown';
+         if (finder_data.hasOwnProperty(operator.metro)) {
+           finder_data[operator.metro].operators.push(operator);
+         }
+         else {
+           finder_data[operator.metro] = {
+             id: operator.metro,
+             label: operator.metro,
+             type: 'region',
+             operators: [operator]
+           };
+         }
+         operator_ids.push(operator.onestop_id);
+       }
+     });
+   }
+
+   getOperators(4, function(level2Data) {
+     addOperators(level2Data);
+     getOperators(2, function(level4Data){
+       addOperators(level4Data);
+       finder_data = $.map(finder_data, function(metro_data, index) {
+         return [metro_data];
+       }).sort(function (a, b) { return a.label.localeCompare(b.label); });
+       callback(finder_data);
+       _.remove(loadingIndicator);
+     });
+   });
 }
 
 function regionClicked(parent, cfg, callback) {
