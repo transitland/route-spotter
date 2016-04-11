@@ -218,7 +218,7 @@ function displayRSP(rsp_data) {
       layer.bindPopup(feature.id);
       if (feature.properties['color']) layer.setStyle({color: '#' + feature.properties['color']});
       var p = L.polylineDecorator(layer, {patterns: [
-          {repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, weight: 0}}) }
+          {repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 12, pathOptions: {fillOpacity: 1, weight: 0}}) }
         ]}
       );
       rspLayer.addLayer(layer);
