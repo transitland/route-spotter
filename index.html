@@ -4,14 +4,20 @@
 		<link rel="stylesheet" href="css/finderjs.css" />
 		<link rel="stylesheet" href="css/leaflet.css" />
 		<link rel="stylesheet" href="css/leaflet.measure.css" />
+		<script src="js/bug.js"></script>
 	</head>
 
 	<body>
-		<div>
+		<div style="margin-top:100px;">
+			<h1> Route Spotter </h1>
+			<p> <a href=""> Learn more </a>
 			<div id="finder" style=""></div>
 			<div id="map" style="width: 100%; height: 600px;"></div>
 		</div>
 		<script src="https://mapzen.com/tangram/tangram.min.js"></script>
 		<script src="js/bundle.js"></script>
+		<script>
+			var bug = new MapzenBug();
+		</script>
 	</body>
 </html>
