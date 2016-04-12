@@ -19,3 +19,10 @@
 .fjs-col:last-child .fjs-active a {
   background-color: #a6a6a6;
 }
+
+.fjs-col:nth-last-child(2) .fjs-active:hover a,
+.fjs-col:last-child .fjs-active:hover a,
+.fjs-col:nth-last-child(2) .fjs-active a:hover,
+.fjs-col:last-child .fjs-active a:hover {
+  background-color: lightgray;
+}
