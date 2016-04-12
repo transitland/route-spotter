@@ -26,3 +26,11 @@
 .fjs-col:last-child .fjs-active a:hover {
   background-color: lightgray;
 }
+
+@media only screen and (max-width: 1300px) {
+  /* not to break layout*/
+  .fjs-container h3.fjs-header {
+    font-size: 18px;
+    letter-spacing: normal;
+  }
+}
