@@ -1,0 +1,93 @@
+/* share style with TransitLand(https://transit.land/)*/
+
+@import url(https://fonts.googleapis.com/css?family=Lato:400,300,700);
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-size: 16px; }
+
+body {
+  font-family: Lato, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  overflow-y: scroll; }
+
+div, section {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+section {
+  position: relative;
+  width: 100%;
+  display: inline-block;
+  float: left; }
+
+a {
+  text-decoration: none;
+  color: #ee914b;
+  font-weight: 400; }
+  a:hover {
+    text-decoration: none; }
+
+p {
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 27px; }
+
+h2 {
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: 2px;
+  display: inline;
+  margin: 0 auto; }
+
+h3 {
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 1.3px; }
+
+.col-1 {
+  color: #f7ae56; }
+
+.col-2 {
+  color: #c91e42; }
+
+.col-3 {
+  color: #60C6D5; }
+
+.col-4 {
+  color: #ee914b; }
+
+.col-5 {
+  color: #66ad2a; }
+
+.white-text {
+  color: #fff; }
+
+.center-text {
+  text-align: center; }
+
+.title {
+  margin-bottom: 60px;
+  margin-top: 45px; }
+
+.container {
+  margin: 0 auto;
+  max-width: 1030px;
+}
+
+.btn-transparent {
+  background: transparent;
+  /* transparent button */
+  border: 1px solid black;
+  border-radius: 0px;
+  color: #000000;
+  padding: 5px 20px;
+  font-size: 16px;
+  font-weight: 400; }
+
+.btn-transparent:hover {
+  background-color: #cecece;
+  border: 1px solid black;
+  box-shadow: 0px 0px;
+  color: #000; }
