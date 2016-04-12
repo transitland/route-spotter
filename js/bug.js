@@ -12,7 +12,7 @@
 var MapzenBug = (function () {
   'use strict'
 
-  var STYLESHEET = '../css/bug.css'
+  var STYLESHEET = '/css/bug.css'
   var DEFAULT_LINK = 'https://transit.land/'
   var DEFAULT_GITHUB_LINK = 'https://github.com/transitland/'
   var TRACKING_CATEGORY = 'demo'
