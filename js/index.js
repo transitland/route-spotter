@@ -36,6 +36,7 @@ stopLayer.addTo(map);
 
 var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
+var api_key = { api_key: 'transitland-gT34UDZ' };
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {header: 'Region'});
@@ -94,7 +95,7 @@ function loadRegions(parent, cfg, callback) {
    var operator_ids = [];
    function getOperators(importLevel, getCallback) {
      var params = {import_level: importLevel};
-     $.extend(params,pagination);
+     $.extend(params,pagination,api_key);
      $.ajax({
        url: host + '/api/v1/operators.json?' + $.param(params),
        dataType: 'json',
@@ -149,7 +150,7 @@ function regionClicked(parent, cfg, callback) {
 
 function operatorClicked(parent, cfg, callback) {
   var params = {operated_by: parent.id};
-  $.extend(params,pagination);
+  $.extend(params,pagination,api_key);
   $.ajax({
     url: host + '/api/v1/routes.json?' + $.param(params),
     dataType: 'json',
@@ -184,7 +185,7 @@ function routeClicked(parent, cfg, callback) {
 function rspClicked(parent, cfg, callback) {
   var rsp_onestop_id = parent.label;
   var params = {onestop_id: rsp_onestop_id};
-  $.extend(params,pagination);
+  $.extend(params,pagination,api_key);
   $.ajax({
     url: host + '/api/v1/route_stop_patterns.geojson?' + $.param(params),
     dataType: 'json',
@@ -266,7 +267,7 @@ function getDistanceFromSSP(rsp_onestop_id, previous_stop, this_stop, next_stop)
     params['destination_onestop_id'] = next_stop;
     params['origin_onestop_id'] = this_stop;
   }
-  $.extend(params,pagination);
+  $.extend(params,pagination,api_key);
   query = '/api/v1/schedule_stop_pairs.json?' + $.param(params);
   $.ajax({
     url: host + query,
