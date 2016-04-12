@@ -1,5 +1,6 @@
 var L = require('./leaflet');
 require('./leaflet.measure');
+require('./leaflet.label');
 require('leaflet-polylinedecorator')
 var finder = require('finderjs');
 var _ = require('./util');
@@ -243,8 +244,10 @@ function getStop(stop_onestop_id, stop_distance) {
     success: function(stop_data) {
       var geojson = L.geoJson(stop_data, {
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(feature.id + '<br/>' +
-                          'Distance traveled: '+  stop_distance);
+          layer.bindLabel(
+            feature.id + '<br/>' + 'Distance traveled: ' +  stop_distance + ' meters',
+            { noHide: true }
+          );
         }
       });
       stopLayer.addLayer(geojson);
