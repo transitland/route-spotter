@@ -14,7 +14,7 @@ var MapzenBug = (function () {
 
   var STYLESHEET = './css/bug.css'
   var DEFAULT_LINK = 'https://transit.land/'
-  var DEFAULT_GITHUB_LINK = 'https://github.com/transitland/'
+  var DEFAULT_GITHUB_LINK = 'https://github.com/transitland/route-spotter'
   var TRACKING_CATEGORY = 'demo'
   var ANALYTICS_PROPERTY_ID = 'UA-47035811-2'
 
