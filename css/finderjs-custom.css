@@ -1,0 +1,21 @@
+.fjs-header {
+  padding: 8px;
+}
+
+.fjs-list li {
+  padding: 8px;
+  border-bottom: 1px solid lightgray;
+}
+
+.fjs-list li:hover {
+  background-color: lightgray;
+}
+
+.fjs-active {
+  background-color: #a6a6a6;
+}
+
+.fjs-col:nth-last-child(2) .fjs-active a,
+.fjs-col:last-child .fjs-active a {
+  background-color: #a6a6a6;
+}
