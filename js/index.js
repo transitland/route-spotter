@@ -1,7 +1,8 @@
 var L = require('./leaflet');
 require('./leaflet.measure');
-require('leaflet-polylinedecorator');
 require('./MovingMarker');
+require('./leaflet.label');
+require('leaflet-polylinedecorator')
 var finder = require('finderjs');
 var _ = require('./util');
 var $ = require('./jquery-1.12.0.min.js');
@@ -29,14 +30,60 @@ var map = new L.Map('map', {
   touchZoom: false,
   measureControl: true
 }).addLayer(tileLayer).setView(new L.LatLng(37.7, -122.4), 6);
+
 var rspLayer = L.layerGroup();
 rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
 var movingMarker;
 
+var animateControl = L.Control.extend({
+  options: {
+      position: 'topleft',
+      on: false
+  },
+
+  onAdd: function(map) {
+    var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+
+    container.style.backgroundColor = 'white';
+    container.style.width = '25px';
+    container.style.height = '25px';
+
+    var ac = this;
+    container.onclick = function(){
+      ac.toggle();
+    }
+    return container;
+  },
+
+  toggle: function() {
+    if (!this.options.on && rspLayer.getLayers().length > 0) {
+      var coords = rspLayer.getLayers()[0].getLatLngs();
+      var numbers = new Array(coords.length);
+      numbers.fill(100);
+      if (!movingMarker) movingMarker = L.Marker.movingMarker(coords,numbers,{loop: true}).addTo(map);
+      movingMarker.start();
+      this.options.on = true;
+    }
+    else {
+      if (movingMarker) {
+        map.removeLayer(movingMarker);
+        movingMarker = null;
+      }
+      this.options.on = false;
+    }
+  }
+
+});
+
+var ac = new animateControl();
+map.addControl(ac);
+
+
 var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
+var api_key = { api_key: 'transitland-gT34UDZ' };
 var container = document.getElementById('finder');
 var loadingIndicator = createLoadingColumn();
 var emitter = finder(container, remoteSource, {header: 'Region'});
@@ -47,7 +94,7 @@ function remoteSource(parent, cfg, callback) {
   if (!parent || parent.type !== 'stop') {
     cfg.emitter.emit('create-column', loadingIndicator);
     rspLayer.clearLayers();
-    if (movingMarker) map.removeLayer(movingMarker);
+    ac.toggle();
   }
   if (parent) {
     if (parent.type === 'region') {
@@ -96,7 +143,7 @@ function loadRegions(parent, cfg, callback) {
    var operator_ids = [];
    function getOperators(importLevel, getCallback) {
      var params = {import_level: importLevel};
-     $.extend(params,pagination);
+     $.extend(params,pagination,api_key);
      $.ajax({
        url: host + '/api/v1/operators.json?' + $.param(params),
        dataType: 'json',
@@ -151,7 +198,7 @@ function regionClicked(parent, cfg, callback) {
 
 function operatorClicked(parent, cfg, callback) {
   var params = {operated_by: parent.id};
-  $.extend(params,pagination);
+  $.extend(params,pagination,api_key);
   $.ajax({
     url: host + '/api/v1/routes.json?' + $.param(params),
     dataType: 'json',
@@ -186,7 +233,7 @@ function routeClicked(parent, cfg, callback) {
 function rspClicked(parent, cfg, callback) {
   var rsp_onestop_id = parent.label;
   var params = {onestop_id: rsp_onestop_id};
-  $.extend(params,pagination);
+  $.extend(params,pagination,api_key);
   $.ajax({
     url: host + '/api/v1/route_stop_patterns.geojson?' + $.param(params),
     dataType: 'json',
@@ -224,16 +271,11 @@ function displayRSP(rsp_data) {
           {repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 12, pathOptions: {fillOpacity: 1, weight: 0}}) }
         ]}
       );
-      var coords = layer.getLatLngs();
-      var numbers = new Array(coords.length);
-      numbers.fill(100);
-      movingMarker = L.Marker.movingMarker(coords,numbers,{loop: true}).addTo(map);
       rspLayer.addLayer(layer);
       rspLayer.addLayer(p);
     }
   });
   map.fitBounds(geojson.getBounds());
-  movingMarker.start();
 }
 
 function stopClicked(stop_distance, rsp_onestop_id, stop_onestop_id, previous, next) {
@@ -251,8 +293,10 @@ function getStop(stop_onestop_id, stop_distance) {
     success: function(stop_data) {
       var geojson = L.geoJson(stop_data, {
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(feature.id + '<br/>' +
-                          'Distance traveled: '+  stop_distance);
+          layer.bindLabel(
+            feature.id + '<br/>' + 'Distance traveled: ' +  stop_distance + ' meters',
+            { noHide: true }
+          );
         }
       });
       stopLayer.addLayer(geojson);
@@ -271,7 +315,7 @@ function getDistanceFromSSP(rsp_onestop_id, previous_stop, this_stop, next_stop)
     params['destination_onestop_id'] = next_stop;
     params['origin_onestop_id'] = this_stop;
   }
-  $.extend(params,pagination);
+  $.extend(params,pagination,api_key);
   query = '/api/v1/schedule_stop_pairs.json?' + $.param(params);
   $.ajax({
     url: host + query,
