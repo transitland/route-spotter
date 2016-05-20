@@ -45,15 +45,31 @@ var animateControl = L.Control.extend({
 
   onAdd: function(map) {
     var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-
-    container.style.backgroundColor = 'white';
-    container.style.width = '25px';
-    container.style.height = '25px';
-
+    container = this.greenArrow(container);
     var ac = this;
     container.onclick = function(){
       ac.toggle();
     }
+    return container;
+  },
+
+  greenArrow: function(container) {
+    container.style.backgroundColor = 'white';
+    container.style.width = '0px';
+    container.style.height = '0px';
+    container.style.borderTop = '13px solid transparent';
+    container.style.borderBottom = '12px solid transparent';
+    container.style.borderLeft = '25px solid #11cc00';
+    return container;
+  },
+
+  redSquare: function(container) {
+    container.style.backgroundColor = 'red';
+    container.style.width = '25px';
+    container.style.height = '25px';
+    container.style.borderTop = '';
+    container.style.borderBottom = '';
+    container.style.borderLeft = '';
     return container;
   },
 
@@ -65,6 +81,7 @@ var animateControl = L.Control.extend({
       if (!movingMarker) movingMarker = L.Marker.movingMarker(coords,numbers,{loop: true}).addTo(map);
       movingMarker.start();
       this.options.on = true;
+      this.redSquare(this._container);
     }
     else {
       if (movingMarker) {
@@ -72,6 +89,7 @@ var animateControl = L.Control.extend({
         movingMarker = null;
       }
       this.options.on = false;
+      this.greenArrow(this._container);
     }
   }
 
