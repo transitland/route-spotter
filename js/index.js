@@ -1,5 +1,6 @@
 var L = require('./leaflet');
 require('./leaflet.measure');
+require('./MovingMarker');
 require('./leaflet.label');
 require('leaflet-polylinedecorator')
 var finder = require('finderjs');
@@ -29,10 +30,74 @@ var map = new L.Map('map', {
   touchZoom: false,
   measureControl: true
 }).addLayer(tileLayer).setView(new L.LatLng(37.7, -122.4), 6);
+
 var rspLayer = L.layerGroup();
 rspLayer.addTo(map);
 var stopLayer = L.layerGroup();
 stopLayer.addTo(map);
+var movingMarker;
+
+var animateControl = L.Control.extend({
+  options: {
+      position: 'topleft',
+      on: false
+  },
+
+  onAdd: function(map) {
+    var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+    container = this.greenArrow(container);
+    var ac = this;
+    container.onclick = function(){
+      ac.toggle();
+    }
+    return container;
+  },
+
+  greenArrow: function(container) {
+    container.style.backgroundColor = 'white';
+    container.style.width = '0px';
+    container.style.height = '0px';
+    container.style.borderTop = '13px solid transparent';
+    container.style.borderBottom = '12px solid transparent';
+    container.style.borderLeft = '25px solid #11cc00';
+    return container;
+  },
+
+  redSquare: function(container) {
+    container.style.backgroundColor = 'red';
+    container.style.width = '25px';
+    container.style.height = '25px';
+    container.style.borderTop = '';
+    container.style.borderBottom = '';
+    container.style.borderLeft = '';
+    return container;
+  },
+
+  toggle: function() {
+    if (!this.options.on && rspLayer.getLayers().length > 0) {
+      var coords = rspLayer.getLayers()[0].getLatLngs();
+      var numbers = new Array(coords.length);
+      numbers.fill(100);
+      if (!movingMarker) movingMarker = L.Marker.movingMarker(coords,numbers,{loop: true}).addTo(map);
+      movingMarker.start();
+      this.options.on = true;
+      this.redSquare(this._container);
+    }
+    else {
+      if (movingMarker) {
+        map.removeLayer(movingMarker);
+        movingMarker = null;
+      }
+      this.options.on = false;
+      this.greenArrow(this._container);
+    }
+  }
+
+});
+
+var ac = new animateControl();
+map.addControl(ac);
+
 
 var host = 'https://transit.land';
 var pagination = {per_page: 1000, total: true};
@@ -47,6 +112,7 @@ function remoteSource(parent, cfg, callback) {
   if (!parent || parent.type !== 'stop') {
     cfg.emitter.emit('create-column', loadingIndicator);
     rspLayer.clearLayers();
+    ac.toggle();
   }
   if (parent) {
     if (parent.type === 'region') {
