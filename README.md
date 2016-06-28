@@ -19,3 +19,6 @@ In addition, Route Spotter uses:
 
 Source for PolylineDecorator:  
 [Leaflet.PolylineDecorator](https://github.com/bbecquet/Leaflet.PolylineDecorator)  
+
+Transitland's finderjs is forked from:  
+https://github.com/mynameistechno/finderjs
