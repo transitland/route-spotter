@@ -12,3 +12,8 @@ In route-spotter/
 git+https://github.com/transitland/finderjs.git`  
 3.  `npm install leaflet-polylinedecorator`  
 4.  `browserify js/index.js | uglifyjs > js/bundle.js`
+
+In addition, Route Spotter uses:  
+[Leaflet.MovingMarker](https://github.com/ewoken/Leaflet.MovingMarker)  
+[leaflet.measure](https://github.com/jtreml/leaflet.measure)  
+[Leaflet.PolylineDecorator](https://github.com/bbecquet/Leaflet.PolylineDecorator)  
