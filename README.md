@@ -16,4 +16,6 @@ git+https://github.com/transitland/finderjs.git`
 In addition, Route Spotter uses:  
 [Leaflet.MovingMarker](https://github.com/ewoken/Leaflet.MovingMarker)  
 [leaflet.measure](https://github.com/jtreml/leaflet.measure)  
+
+Source for PolylineDecorator:  
 [Leaflet.PolylineDecorator](https://github.com/bbecquet/Leaflet.PolylineDecorator)  
